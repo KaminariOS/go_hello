@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +25,15 @@ func main() {
 	// Root endpoint returns a friendly greeting.
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Welcome to the Gin web server!",
+			"message":      "Welcome to the Gin web server!",
+			"current_time": time.Now().Format(time.RFC3339),
+		})
+	})
+
+	// IP endpoint returns the client's perceived IP address.
+	router.GET("/ip", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"ip": c.ClientIP(),
 		})
 	})
 

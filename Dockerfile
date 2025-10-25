@@ -1,22 +1,28 @@
 
 # ---- Build stage ----
-FROM golang:1.25-alpine AS builder
+FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.25-alpine AS builder
 
 # Enable Go modules and configure working directory
 WORKDIR /app
+
+# Buildx sets TARGETOS/TARGETARCH; default to linux/amd64 for local builds.
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
 
 # Copy go.mod and go.sum first (for caching dependencies)
 COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the rest of the code
-COPY . .
+COPY main.go main.go
 
 # Build a statically linked binary
-RUN CGO_ENABLED=0 GOOS=linux go build -o server .
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-w -s"  -o server .
 
 # ---- Runtime stage ----
-FROM scratch
+FROM --platform=${TARGETPLATFORM:-linux/amd64} scratch
 
 # Copy binary from builder
 COPY --from=builder /app/server /server

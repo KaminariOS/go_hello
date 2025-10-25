@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "go-hello.fullname" . }}-test-connection"
+  labels:
+    {{- include "go-hello.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: curl
+      image: curlimages/curl:8.9.1
+      args:
+        - curl
+        - "-skf"
+        - "http://{{ include "go-hello.fullname" . }}:{{ .Values.service.port }}/healthz"
+  restartPolicy: Never
